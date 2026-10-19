@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../themes/brand.dart';
-import '../widgets/bocardo_lockup.dart';
 
 class RestaurantHomePage extends StatelessWidget {
   const RestaurantHomePage({super.key});
@@ -22,17 +21,25 @@ class RestaurantHomePage extends StatelessWidget {
         title: const BrandMark(size: 36),
         actions: [
           IconButton(
+            tooltip: 'Auth Test Bench',
+            icon: const Icon(Icons.science_outlined),
+            onPressed: () {
+              Navigator.pushNamed(context, '/auth-test-bench');
+            },
+          ),
+          IconButton(
             tooltip: 'Log out',
             icon: const Icon(Icons.logout),
-          onPressed: () {
-    AuthService.instance.signOut();
-
-    Navigator.pushNamedAndRemoveUntil(
-    context,
-    '/login',
-    (route) => false,
-    );},
-
+            onPressed: () async {
+              await AuthService.instance.signOut();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
+              }
+            },
           ),
         ],
       ),
@@ -48,7 +55,9 @@ class RestaurantHomePage extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Here is how your day looks.',
+            AuthService.instance.currentUser != null
+                ? 'Logged in as ${AuthService.instance.currentUser!.ownerName} (${AuthService.instance.currentUser!.email})'
+                : 'Here is how your day looks.',
             style: t.bodyMedium,
           ),
           const SizedBox(height: 18),

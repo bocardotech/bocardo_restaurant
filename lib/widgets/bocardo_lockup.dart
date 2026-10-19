@@ -19,7 +19,7 @@ class BocardoLockup extends StatelessWidget {
         borderRadius: BorderRadius.circular(compact ? 14 : 20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: compact ? 10 : 16,
             offset: Offset(0, compact ? 3 : 6),
           ),

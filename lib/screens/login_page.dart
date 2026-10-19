@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../themes/brand.dart';
-import '../widgets/bocardo_lockup.dart';
 
 class LoginPage extends StatefulWidget {
 const LoginPage({super.key});
@@ -81,29 +81,36 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       debugPrint('GOOGLE LOGIN: ID token received');
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
 
-      final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
+      // 1. Authenticate with Supabase if initialized
+      if (SupabaseAuthService.instance.isInitialized) {
+        try {
+          await SupabaseAuthService.instance.signInWithGoogleIdToken(
+            idToken: googleAuth.idToken!,
+          );
+          debugPrint('GOOGLE LOGIN: Supabase authentication successful');
+        } catch (e) {
+          debugPrint('GOOGLE LOGIN: Supabase auth warning: $e');
+        }
+      }
 
-      debugPrint(
-        'GOOGLE LOGIN: Firebase authentication successful',
-      );
-      debugPrint(
-        'GOOGLE LOGIN: Firebase UID: '
-            '${userCredential.user?.uid}',
-      );
+      // 2. Also authenticate with Firebase if configured
+      try {
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+        );
+        await FirebaseAuth.instance.signInWithCredential(credential);
+        debugPrint('GOOGLE LOGIN: Firebase authentication successful');
+      } catch (e) {
+        debugPrint('GOOGLE LOGIN: Firebase auth warning: $e');
+      }
 
       if (!mounted) return;
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         '/home',
-            (route) => false,
+        (route) => false,
       );
     } on FirebaseAuthException catch (e, stackTrace) {
       debugPrint('GOOGLE LOGIN: Firebase error: ${e.code}');
@@ -404,6 +411,14 @@ class _LoginPageState extends State<LoginPage> {
                     'Create a restaurant account',
                   ),
                 ),
+              ),
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/auth-test-bench');
+                },
+                icon: const Icon(Icons.science_outlined, size: 18),
+                label: const Text('Open Supabase Auth Test Bench'),
               ),
             ],
           ),

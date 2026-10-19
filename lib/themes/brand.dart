@@ -89,7 +89,7 @@ class BrandLogo extends StatelessWidget {
         'assets/images/logo.jpeg',
         fit: BoxFit.cover,
         semanticLabel: 'bocardo logo',
-        errorBuilder: (_, __, ___) => _fallback(),
+        errorBuilder: (_, _, _) => _fallback(),
       ),
     ),
   );

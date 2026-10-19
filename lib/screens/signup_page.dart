@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../themes/brand.dart';
-import '../widgets/bocardo_lockup.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -54,7 +54,32 @@ class _SignupPageState extends State<SignupPage> {
       );
       TextInput.finishAutofillContext();
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+
+      // Check if session was automatically established (or requires email verification)
+      final session = SupabaseAuthService.instance.currentSession;
+      if (session != null) {
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+      } else {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Account Created'),
+            content: Text(
+              'Your restaurant account for ${_restaurant.text.trim()} has been registered!\n\nIf email verification is enabled, please check your inbox at ${_email.text.trim()} before logging in.',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                },
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) setState(() => _error = _friendly(e));
     } finally {
